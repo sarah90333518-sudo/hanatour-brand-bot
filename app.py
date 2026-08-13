@@ -123,9 +123,12 @@ with st.sidebar:
     st.markdown("### ✈️ 하나투어 브랜드 센터")
     st.caption("하나투어 임직원 전용 브랜드 가이드라인 챗봇")
     
+    # 1. 브랜드 디자인 파일 저장소 (최상단 배치)
+    render_asset_sidebar()
+    
     st.divider()
     
-    # 1. 퀵 질문 버튼 (핵심 카테고리별 분류)
+    # 2. 퀵 질문 버튼 (핵심 카테고리별 분류)
     st.markdown("#### ⚡ 자주 묻는 브랜드 질문")
     
     categorized_queries = {
@@ -135,9 +138,9 @@ with st.sidebar:
             ("🔤 지정 폰트 다운로드", "하나투어 폰트 지정서체 다운로드"),
             ("🖼️ 브랜드 이미지 (446컷)", "브랜드 이미지 다운로드"),
         ],
-        "🏪 매장 & 대리점 지원": [
-            ("🏪 대리점 간판 설치 규정", "대리점 간판 설치 CI 사용 규정"),
-            ("📄 대리점 PPT 템플릿", "공식인증예약센터 대리점 템플릿"),
+        "🏪 공식인증예약센터": [
+            ("🏪 공식인증예약센터 간판 설치 규정", "공식인증예약센터 간판 설치 CI 사용 규정"),
+            ("📄 공식인증예약센터 PPT 템플릿", "공식인증예약센터 PPT 템플릿"),
             ("📱 SNS 및 콘텐츠 운영 규정", "SNS 운영 규정 알려줘"),
         ],
         "✈️ 브랜드 체계 & 라인업": [
@@ -157,9 +160,6 @@ with st.sidebar:
                 if st.button(label, key=f"btn_preset_{label}", use_container_width=True):
                     st.session_state.pending_query = query_text
                     st.session_state["asset_panel_mode"] = None
-
-    # 2. 에셋 다운로드 브라우저 사이드바 모듈
-    render_asset_sidebar()
 
     st.divider()
 

@@ -50,7 +50,7 @@ BRAND_GROUPS = {
     },
     "공식인증예약센터": {
         "icon": "🏪",
-        "description": "대리점·예약센터 전용 BI·사무용품·인쇄홍보물·간판·규정",
+        "description": "공식인증예약센터 전용 BI·사무용품·인쇄홍보물·간판·규정",
         "subcategories": {
             "BI (로고)": lambda df: df[
                 (df["대분류코드"] == "01_BS") &
@@ -281,7 +281,7 @@ def render_type_view(df):
 # ──────────────────────────────────────────────
 def render_asset_browser():
     """에셋 브라우저 메인 함수 — 듀얼 탭 모드"""
-    st.subheader("📁 하나투어 에셋 다운로드 센터 v2.0")
+    st.subheader("📁 하나투어 브랜드 디자인 파일 저장소")
 
     # 데이터 로드
     try:
@@ -320,12 +320,11 @@ def render_asset_browser():
 
 def render_asset_sidebar():
     """사이드바 진입 버튼"""
-    with st.sidebar:
-        st.divider()
-        st.markdown("##### 📂 에셋 센터 v2.0")
-        if st.button("📁 에셋 브라우저 열기 (듀얼 탭)", key="btn_open_asset_browser", use_container_width=True):
-            st.session_state["asset_panel_mode"] = "active"
-            st.rerun()
+    st.divider()
+    st.markdown("##### 📂 브랜드 디자인 파일 저장소")
+    if st.button("📁 디자인 저장소 열기 (듀얼 탭)", key="btn_open_asset_browser", use_container_width=True):
+        st.session_state["asset_panel_mode"] = "active"
+        st.rerun()
 
 
 def render_asset_panel() -> bool:
