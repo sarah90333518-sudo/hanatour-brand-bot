@@ -1,6 +1,6 @@
 """
 asset_browser.py v2.0 — 브랜드/거점별 + 유형별 듀얼 탭 에셋 브라우저
-하나투어 브랜드 지킴이 웹 앱용 Streamlit 컴포넌트
+하나투어 브랜드 똑순이 웹 앱용 Streamlit 컴포넌트
 """
 import streamlit as st
 import pandas as pd

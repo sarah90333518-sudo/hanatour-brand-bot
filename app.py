@@ -10,7 +10,7 @@ from asset_browser import render_asset_sidebar, render_asset_panel
 # ─────────────────────────────────────
 
 st.set_page_config(
-    page_title="하나투어 브랜드 가이드라인 AI 챗봇",
+    page_title="하나투어 브랜드 똑순이 AI 챗봇",
     page_icon="✈️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -186,7 +186,7 @@ if not render_asset_panel():
     st.markdown("""
     <div class="brand-header">
         <div class="brand-title">
-            <span>✈️ 하나투어 브랜드 지킴이</span>
+            <span>✈️ 하나투어 브랜드 똑순이</span>
             <span class="badge-status">🟢 Live</span>
         </div>
         <div class="brand-subtitle">

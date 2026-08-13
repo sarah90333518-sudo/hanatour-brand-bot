@@ -552,7 +552,7 @@ def generate_brand_response(query: str, search_results: List[Dict[str, Any]]) ->
         with open(prompt_file, "r", encoding="utf-8") as f:
             system_prompt = f.read()
     else:
-        system_prompt = "너는 하나투어 브랜드 가이드라인 전문 AI 어시스턴트 '브랜드 지킴이'야. CSV 데이터에 있는 정보만으로 답변하고, 없는 정보는 절대 지어내지 마. 답변은 친절하고 구조적으로 해줘."
+        system_prompt = "너는 하나투어 브랜드 가이드라인 전문 AI 어시스턴트 '브랜드 똑순이'야. CSV 데이터에 있는 정보만으로 답변하고, 없는 정보는 절대 지어내지 마. 답변은 친절하고 구조적으로 해줘."
 
     prompt = f"""[사용자 질문]: {query}
 
