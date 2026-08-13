@@ -437,86 +437,100 @@ ZEUSworld는
 def check_fixed_answer(query: str) -> str | None:
     q = query.strip().lower()
     
-    # 0. 신규 FIXED-ANSWER 5종 트리거 검사 (최우선)
-    
-    # 비즈링
-    bizring_triggers = ["비즈링", "biz ring", "비즈링 신청", "통화연결음", "회사 벨소리", "대기음", "비즈링 설정", "전화연결음", "하나투어 컬러링", "컬러링"]
-    if any(k in q for k in bizring_triggers):
-        return FIXED_ANSWERS["비즈링"]
-
-    # 하나프리팩 (브랜드 체계보다 우선 처리하여 차이점/뜻 질문 대응)
-    freepack_triggers = ["하나프리팩", "하나프리팩이 뭐", "하나프리팩 뜻", "하나프리팩 소개", "프리팩", "세미패키지", "에어텔", "하나프리 하나프리팩 차이", "프리팩이란", "하이브리드 여행"]
-    if any(k in q for k in freepack_triggers):
-        return FIXED_ANSWERS["하나프리팩"]
-
-    # 브랜드 체계
-    arch_triggers = ["브랜드 체계", "브랜드 아키텍처", "브랜드 종류", "브랜드 구조", "브랜드 계층", "하이어라키", "hierarchy", "하나팩 하나프리 차이", "개별 브랜드", "크로스 브랜드", "내나라여행", "내나라 브랜드", "우리끼리", "우리끼리 브랜드", "하나팩테마", "테마여행 브랜드", "여행 유형", "여행 종류", "완전 패키지", "패키지 자유", "완전 자유여행", "유형 구분", "상품브랜드", "하나팩", "하나팩2.0"]
-    if any(k in q for k in arch_triggers):
-        return FIXED_ANSWERS["브랜드 체계"]
-
-    # 내맘대로
-    myway_triggers = ["내맘대로", "내맘대로 상표", "내맘대로 사용", "내맘대로 크루즈텔", "내맘대로 써도", "등록상표", "내맘대로 규정", "내맘대로 뜻", "상표 사용 규정", "내맘대로 항공", "내맘대로 호텔", "단품조합", "내맘대로 언제"]
-    if any(k in q for k in myway_triggers):
-        return FIXED_ANSWERS["내맘대로"]
-
-    # 브랜드 이미지
-    img_triggers = ["브랜드 이미지", "브랜드성 이미지", "인물 이미지", "소품 이미지", "모델 이미지", "촬영 이미지", "이미지 소스", "이미지 다운로드", "이미지 파일", "브랜드 사진", "모델 사진", "소품 사진", "이미지 사용 규정", "이미지 사용 기간", "이미지 저작권"]
-    if any(k in q for k in img_triggers):
-        return FIXED_ANSWERS["브랜드이미지"]
-
-    # 구체적인 조합 키워드가 포함된 경우 FIXED-ANSWER 대신 CSV 상세 검색 수행
+    # 구체적인 세부 의문사/질문 수식어가 포함된 경우 FIXED-ANSWER 대신 CSV 개별 FAQ 검색 수행
     specific_qualifiers = [
         "dmc", "해외지사", "명함", "봉투", "x배너", "현수막", "신청", "절차", 
-        "위치", "크기", "서식", "양식", "검수", "템플릿", "매장", "센터", "채널", "종류"
+        "위치", "크기", "서식", "양식", "검수", "템플릿", "매장", "센터", "채널", "종류",
+        "여백", "보호영역", "바꿔", "변경", "비율", "회전", "돌려", "그림자", "테두리", 
+        "배경", "전달", "외부", "전용", "안전", "책임", "얼마나", "최소", "작게", 
+        "무슨", "어떤", "무엇", "어디", "어디서", "왜", "어떻게", "기준", "써도", 
+        "돼", "되나요", "가능", "가능해", "가능한가요", "설치", "만들어", "작은"
     ]
     
-    # 1. 간판 / 사인시스템
-    sign_triggers = ["간판", "사인시스템", "현판", "윈도우그래픽", "가로입체bar", "대리점 간판", "간판 규정", "간판 설치", "ci 간판", "공식인증예약센터 간판"]
-    if any(k in q for k in sign_triggers):
-        return FIXED_ANSWERS["간판"]
+    # 구체적인 질문 수식어가 들어있는 문장은 CSV FAQ 검색으로 우선 전달
+    if any(sq in q for sq in specific_qualifiers):
+        # 단, 비즈링/내맘대로/하나프리팩/제우스 매니페스토 명시적 고정 키워드는 전용 답변 출력
+        if "비즈링" in q and ("신청" in q or q in ["비즈링", "biz ring", "통화연결음"]):
+            return FIXED_ANSWERS["비즈링"]
+        if "하나프리팩" in q:
+            return FIXED_ANSWERS["하나프리팩"]
+        if "내맘대로" in q:
+            return FIXED_ANSWERS["내맘대로"]
+        if "매니페스토" in q:
+            return FIXED_ANSWERS["제우스월드 매니페스토"]
+        return None
 
-    # 2. 대리점 템플릿
-    template_triggers = ["대리점 템플릿", "대리점 ppt", "홍보물 템플릿"]
-    if any(k in q for k in template_triggers):
-        return FIXED_ANSWERS["대리점 템플릿"]
+    # 1. 비즈링
+    bizring_triggers = ["비즈링", "biz ring", "비즈링 신청", "통화연결음", "회사 벨소리", "대기음", "비즈링 설정", "전화연결음", "하나투어 컬러링", "컬러링"]
+    if any(k == q or k in q for k in bizring_triggers):
+        return FIXED_ANSWERS["비즈링"]
 
-    # 3. 제우스월드 매니페스토
-    if any(k in q for k in ["제우스월드 매니페스토", "제우스 매니페스토", "zeusworld 매니페스토", "제우스월드 슬로건", "경험의 기준을 높이다"]):
+    # 2. 하나프리팩
+    freepack_triggers = ["하나프리팩", "하나프리팩 소개", "하나프리팩 뜻", "하나프리팩이 뭐야"]
+    if any(k == q for k in freepack_triggers):
+        return FIXED_ANSWERS["하나프리팩"]
+
+    # 3. 브랜드 체계 (단독/대표 질의)
+    arch_triggers = ["하나투어 브랜드 체계 아키텍처", "브랜드 체계 (4계층)", "브랜드 아키텍처", "브랜드 체계"]
+    if q in arch_triggers:
+        return FIXED_ANSWERS["브랜드 체계"]
+
+    # 4. 내맘대로
+    if "내맘대로" in q:
+        return FIXED_ANSWERS["내맘대로"]
+
+    # 5. 제우스월드 매니페스토
+    if any(k in q for k in ["제우스월드 매니페스토", "제우스 매니페스토", "zeusworld 매니페스토", "경험의 기준을 높이다"]):
         return FIXED_ANSWERS["제우스월드 매니페스토"]
         
-    # 4. 제우스월드 (단독/대표 질의)
-    if q in ["제우스월드", "제우스 월드", "zeusworld", "제우스월드 하이엔드", "제우스월드 브랜드 라인업"]:
+    # 6. 제우스월드 (단독/대표 질의)
+    if q in ["제우스월드", "제우스 월드", "zeusworld", "제우스월드 브랜드 라인업", "제우스월드 소개"]:
         return FIXED_ANSWERS["제우스월드"]
 
-    # 5. 로고 (단독/대표 질의)
-    logo_triggers = ["로고", "로고 다운로드", "하나투어 로고", "브랜드 로고", "심볼", "심벌", "워드마크", "시그니처", "로고 파일", "로고 규정", "ci 다운로드", "bi 다운로드", "로고 ci/bi 다운로드"]
-    if (any(k == q or k in q for k in logo_triggers) or q in ["ci", "bi", "ci/bi"]) and not any(sq in q for sq in specific_qualifiers):
+    # 7. 로고 (단독/대표 질의만 매칭)
+    logo_triggers = ["로고", "로고 다운로드", "하나투어 로고", "브랜드 로고", "로고 파일", "ci 다운로드", "bi 다운로드", "로고 ci/bi 다운로드"]
+    if q in logo_triggers or q in ["ci", "bi", "ci/bi"]:
         return FIXED_ANSWERS["로고"]
 
-    # 6. SNS
-    sns_triggers = ["sns", "sns 규정", "sns 운영", "콘텐츠 운영", "콘텐츠 규정", "sns 유의사항", "게시물 규정", "sns 브랜드 규정", "밈", "밈 사용", "인스타그램 규정", "유튜브 규정", "콘텐츠 제작 규정", "sns 체크리스트", "게시 전 체크리스트", "브랜드 안전"]
-    if any(k in q for k in sns_triggers):
+    # 8. 간판 / 사인시스템 (단독/대표 질의만 매칭)
+    sign_triggers = ["간판", "사인시스템", "대리점 간판", "대리점 간판 설치 ci 사용 규정", "대리점 간판 설치"]
+    if q in sign_triggers:
+        return FIXED_ANSWERS["간판"]
+
+    # 9. 대리점 템플릿
+    template_triggers = ["대리점 템플릿", "공식인증예약센터 대리점 템플릿", "대리점 ppt"]
+    if q in template_triggers:
+        return FIXED_ANSWERS["대리점 템플릿"]
+
+    # 10. SNS
+    sns_triggers = ["sns", "sns 운영 규정 알려줘", "sns 유의사항", "sns 게시물 규정", "sns 체크리스트"]
+    if q in sns_triggers:
         return FIXED_ANSWERS["sns"]
 
-    # 7. 폰트 (단독/대표 질의)
-    font_triggers = ["폰트", "서체", "글꼴", "폰트 다운로드", "서체 다운로드", "본고딕", "inter", "여행그자체", "공식 서체", "지정 서체", "지정폰트 다운로드", "하나투어 폰트 지정서체 다운로드"]
-    if any(k in q for k in font_triggers) and not any(sq in q for sq in specific_qualifiers):
+    # 11. 폰트 (단독/대표 질의만 매칭)
+    font_triggers = ["폰트", "서체", "글꼴", "폰트 다운로드", "서체 다운로드", "하나투어 폰트 지정서체 다운로드"]
+    if q in font_triggers:
         return FIXED_ANSWERS["폰트"]
 
-    # 8. 수상이력
+    # 12. 수상이력
     award_triggers = ["수상이력", "수상 내역", "수상 실적", "수상 내역 실적 알려줘", "주요 수상 및 인증 실적"]
-    if any(k in q for k in award_triggers):
+    if q in award_triggers:
         return FIXED_ANSWERS["수상이력"]
 
-    # 9. 담당자 (단독/대표 질의)
-    contact_triggers = ["브랜드 담당자 연락처", "브랜드 문의 담당자", "담당자 연락처", "브랜드팀 연락처"]
-    if any(k in q for k in contact_triggers) or q in ["담당자", "연락처", "문의처"]:
+    # 13. 담당자
+    contact_triggers = ["브랜드 담당자 연락처", "브랜드 문의 담당자", "담당자 연락처", "브랜드팀 연락처", "담당자"]
+    if q in contact_triggers:
         return FIXED_ANSWERS["담당자"]
 
-    # 10. 컬러 (단독/대표 질의)
-    color_triggers = ["컬러", "브랜드 컬러", "컬러 가이드", "컬러 가이드 규정 알려줘", "브랜드 컬러 규정", "컬러 규정"]
-    if any(k in q for k in color_triggers) and not any(sq in q for sq in specific_qualifiers):
+    # 14. 컬러 (단독/대표 질의만 매칭)
+    color_triggers = ["컬러", "브랜드 컬러", "컬러 가이드", "컬러 가이드 규정 알려줘", "브랜드 컬러 규정"]
+    if q in color_triggers:
         return FIXED_ANSWERS["컬러"]
+
+    # 15. 브랜드 이미지
+    img_triggers = ["브랜드 이미지 다운로드", "브랜드 이미지 (446컷)", "브랜드성 이미지"]
+    if q in img_triggers:
+        return FIXED_ANSWERS["브랜드이미지"]
         
     return None
 
@@ -530,7 +544,20 @@ def generate_brand_response(query: str, search_results: List[Dict[str, Any]]) ->
     if fixed:
         return fixed
         
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except Exception:
+        pass
+
     api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if not api_key:
+        try:
+            import streamlit as st
+            if hasattr(st, "secrets"):
+                api_key = st.secrets.get("GEMINI_API_KEY") or st.secrets.get("GOOGLE_API_KEY")
+        except Exception:
+            pass
     
     context_str = ""
     if search_results:
@@ -586,7 +613,12 @@ def generate_brand_response(query: str, search_results: List[Dict[str, Any]]) ->
 
     # Fallback when no API Key is set: Synthesize directly from search results
     if search_results:
-        res_parts = [f"**'{query}'**에 대해 안내해 드립니다.\n"]
+        if len(search_results) == 1:
+            item = search_results[0]
+            link_str = f"\n\n▶ [관련 다운로드/바로가기]({item['link']})" if item.get('link') else ""
+            return f"{item['answer']}{link_str}\n\n▶ 브랜드 검수·디자인 문의: 이승현G 선임 (내선 6725) / 백솜이 선임 (내선 7051)".replace('\\n', '\n')
+
+        res_parts = []
         for idx, item in enumerate(search_results, 1):
             q_clean = item['question']
             a_clean = item['answer']

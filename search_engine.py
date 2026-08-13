@@ -19,10 +19,17 @@ def load_all_datasets() -> pd.DataFrame:
             df = pd.read_csv(file, encoding='utf-8-sig').fillna('')
             df['source_file'] = os.path.basename(file)
             
-            # 스키마 정규화 (assets.csv 등 항목/파일명/검색키워드 구조 대응)
+            # 키워드/링크/ID 컬럼명 통일
+            if '검색키워드' in df.columns:
+                df['키워드'] = df['검색키워드']
+            if '다운로드 링크' in df.columns:
+                df['링크'] = df['다운로드 링크']
+            if 'id' in df.columns:
+                df['ID'] = df['id']
+
+            # 스키마 정규화 (assets.csv 등 항목/파일명 구조 대응)
             if '항목' in df.columns:
                 df['질문'] = df.apply(lambda r: f"{r.get('대분류명','')} {r.get('항목','')} ({r.get('파일명','')})", axis=1)
-                df['키워드'] = df.get('검색키워드', '')
                 df['답변'] = df.apply(lambda r: f"[{r.get('대분류명','')}] {r.get('항목','')} - {r.get('파일명','')} (확장자: {r.get('보유확장자','')})", axis=1)
                 
             combined_dfs.append(df)
@@ -59,6 +66,25 @@ def search_csv(query: str, top_k: int = 3) -> List[Dict[str, Any]]:
     query_clean = str(query).strip().lower()
     raw_tokens = [token.strip() for token in query_clean.split() if len(token.strip()) > 0]
     
+    # 복합어 자동 분리 매핑 (예: 강조색상 -> 강조, 색상, 강조색 / 대표색상 -> 대표, 색상)
+    compound_map = {
+        "강조색상": ["강조", "색상", "강조색", "강조색상"],
+        "강조색": ["강조", "색상", "강조색"],
+        "대표색상": ["대표", "색상", "대표색", "대표색상"],
+        "대표색": ["대표", "색상", "대표색"],
+        "확장색상": ["확장", "색상", "확장색", "확장색상"],
+        "파생색상": ["파생", "색상", "파생색", "파생색상"],
+        "보조색상": ["보조", "색상", "보조색", "보조색상"],
+        "포인트컬러": ["포인트", "컬러", "포인트컬러"],
+        "포인트색상": ["포인트", "색상", "포인트색상"],
+        "검수규정": ["검수", "규정", "검수규정", "검수대상", "검수가이드"],
+        "검수대상": ["검수", "대상", "검수대상"],
+        "검수절차": ["검수", "절차", "검수절차", "검수신청"],
+        "검수방법": ["검수", "방법", "검수방법"],
+        "밈": ["밈", "유행어", "sns밈", "밈규정", "밈사용"],
+        "유행어": ["유행어", "밈", "밈사용"],
+    }
+
     # 원본 토큰 및 어근 토큰 추출
     query_tokens = set()
     for t in raw_tokens:
@@ -66,21 +92,42 @@ def search_csv(query: str, top_k: int = 3) -> List[Dict[str, Any]]:
         stem = clean_token(t)
         if stem:
             query_tokens.add(stem)
-            
+        for comp, parts in compound_map.items():
+            if comp in t or comp in stem:
+                query_tokens.update(parts)
+
+    # 융합 토큰 자동 생성 (예: '검수'와 '규정'이 함께 입력되면 '검수규정' 토큰 추가)
+    if '검수' in query_tokens and ('규정' in query_tokens or '가이드' in query_tokens or '절차' in query_tokens or '방법' in query_tokens or '대상' in query_tokens or '신청' in query_tokens):
+        query_tokens.update(['검수규정', '검수절차', '검수가이드', '검수대상'])
+
     results = []
     
     for idx, row in df.iterrows():
         score = 0
         match_details = []
+        r_id = row.get('id', row.get('ID', 0))
         
         q_text = str(row.get('질문', '')).lower()
         k_text = str(row.get('키워드', '')).lower()
         a_text = str(row.get('답변', '')).lower()
         
+        # 문의처 하단 공통 푸터 문구(▶ ... 문의)는 답변 본문 매칭에서 제외 (노이즈 방지)
+        a_content = re.sub(r'▶.*?(문의|선임|이승현|백솜이).*', '', a_text, flags=re.IGNORECASE | re.DOTALL)
+        
         q_words = set(re.findall(r'\w+', q_text))
         k_words = set(re.findall(r'\w+', k_text))
-        a_words = set(re.findall(r'\w+', a_text))
+        a_words = set(re.findall(r'\w+', a_content))
         all_row_words = q_words | k_words | a_words
+        
+        try:
+            r_id_num = int(r_id)
+        except (ValueError, TypeError):
+            r_id_num = 0
+            
+        # 검수 관련 질의 시 브랜드 검수 전용 FAQ (ID 70~80) 가산점 (+15점)
+        if '검수' in query_tokens and 70 <= r_id_num <= 80:
+            score += 15
+            match_details.append("검수 전용 FAQ 가산점(+15)")
         
         # 0. 정확한 단어 일치 가산점 (+5점)
         for token in query_tokens:
@@ -146,9 +193,15 @@ def search_csv(query: str, top_k: int = 3) -> List[Dict[str, Any]]:
 
     if results:
         top_score = results[0]['score']
-        # 최고 점수의 60% 이상 점수를 가진 관련성 높은 항목만 필터링
-        relevant_results = [r for r in results if r['score'] >= max(10, top_score * 0.6)]
-        return relevant_results[:top_k] if relevant_results else results[:1]
+        # 최고 점수가 12점 이상이거나 2위 점수와 4점 이상 격차가 나면 단일 최고 정답 1개만 반환
+        if len(results) > 1:
+            second_score = results[1]['score']
+            if top_score >= 12 or (top_score - second_score >= 4):
+                return results[:1]
+        
+        # 점수가 유사한 팽팽한 관련 항목들만 최대 2개 이내로 정밀 제한
+        relevant_results = [r for r in results if r['score'] >= max(5, top_score * 0.7)]
+        return relevant_results[:2] if relevant_results else results[:1]
 
     return []
 
