@@ -122,13 +122,18 @@ def search_csv(query: str, top_k: int = 3) -> List[Dict[str, Any]]:
                 match_details.append(f"답변본문 '{token}'(+1)")
                 
         if score > 0:
+            # FAQ / Signage / Zeusworld 문답형 CSV 데이터에 가산점 부여
+            source_file = str(row.get('source_file', ''))
+            if any(s in source_file for s in ['faq', 'signage', 'zeusworld']):
+                score += 5
+
             results.append({
                 'id': row.get('ID', idx),
                 'question': row.get('질문', ''),
                 'keyword': row.get('키워드', ''),
                 'answer': row.get('답변', ''),
                 'link': row.get('링크', ''),
-                'source': row.get('source_file', ''),
+                'source': source_file,
                 'score': score,
                 'match_details': list(set(match_details))
             })
@@ -138,7 +143,14 @@ def search_csv(query: str, top_k: int = 3) -> List[Dict[str, Any]]:
         10 if ('하나투어 브랜드' in str(x['question']) or '하나투어 로고' in str(x['question'])) else 0,
         5 if ('공식인증' in str(x['question']) or 'ci/bi' in str(x['question']).lower()) else 0
     ), reverse=True)
-    return results[:top_k]
+
+    if results:
+        top_score = results[0]['score']
+        # 최고 점수의 60% 이상 점수를 가진 관련성 높은 항목만 필터링
+        relevant_results = [r for r in results if r['score'] >= max(10, top_score * 0.6)]
+        return relevant_results[:top_k] if relevant_results else results[:1]
+
+    return []
 
 if __name__ == "__main__":
     test_queries = ["강조색상이 뭐야?", "강조색상이 무엇인지 질문대 대한 답변은 왜 없어?", "간판 규정 알려줘"]

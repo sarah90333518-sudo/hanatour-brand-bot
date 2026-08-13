@@ -125,25 +125,39 @@ with st.sidebar:
     
     st.divider()
     
-    # 1. 퀵 질문 버튼 (Presets)
+    # 1. 퀵 질문 버튼 (핵심 카테고리별 분류)
     st.markdown("#### ⚡ 자주 묻는 브랜드 질문")
-    quick_queries = [
-        ("🎨 브랜드 컬러 규정", "컬러 가이드 규정 알려줘"),
-        ("🏷️ 로고 CI/BI 다운로드", "로고 다운로드"),
-        ("📱 SNS 및 콘텐츠 운영 규정", "SNS 운영 규정 알려줘"),
-        ("🔤 지정 폰트 다운로드", "하나투어 폰트 지정서체 다운로드"),
-        ("🏆 주요 수상 및 인증 실적", "수상 내역 실적 알려줘"),
-        ("📞 브랜드 담당자 연락처", "브랜드 문의 담당자 연락처"),
-        ("🏪 대리점 간판 설치", "대리점 간판 설치 CI 사용 규정"),
-        ("📄 대리점 PPT 템플릿", "공식인증예약센터 대리점 템플릿"),
-        ("👑 제우스월드 하이엔드", "제우스월드 브랜드 라인업"),
-        ("📜 제우스월드 매니페스토", "제우스월드 매니페스토 전문")
-    ]
     
-    for label, query_text in quick_queries:
-        if st.button(label, use_container_width=True):
-            st.session_state.pending_query = query_text
-            st.session_state["asset_panel_mode"] = None
+    categorized_queries = {
+        "🎨 브랜드 기본 자산": [
+            ("🏷️ 로고 CI/BI 다운로드", "로고 다운로드"),
+            ("🎨 브랜드 컬러 규정", "컬러 가이드 규정 알려줘"),
+            ("🔤 지정 폰트 다운로드", "하나투어 폰트 지정서체 다운로드"),
+            ("🖼️ 브랜드 이미지 (446컷)", "브랜드 이미지 다운로드"),
+        ],
+        "🏪 매장 & 대리점 지원": [
+            ("🏪 대리점 간판 설치 규정", "대리점 간판 설치 CI 사용 규정"),
+            ("📄 대리점 PPT 템플릿", "공식인증예약센터 대리점 템플릿"),
+            ("📱 SNS 및 콘텐츠 운영 규정", "SNS 운영 규정 알려줘"),
+        ],
+        "✈️ 브랜드 체계 & 상표": [
+            ("📐 브랜드 체계 (4계층)", "하나투어 브랜드 체계 아키텍처"),
+            ("✈️ 하나프리팩 소개", "하나프리팩 소개 알려줘"),
+            ("🏷️ 「내맘대로」 상표 규정", "내맘대로 등록상표 사용 규정"),
+        ],
+        "📞 운영 & 홍보 지원": [
+            ("🔔 비즈링(통화연결음) 신청", "비즈링 통화연결음 신청 방법"),
+            ("🏆 주요 수상 및 인증 실적", "수상 내역 실적 알려줘"),
+            ("📞 브랜드 담당자 연락처", "브랜드 문의 담당자 연락처"),
+        ]
+    }
+
+    for cat_name, queries in categorized_queries.items():
+        with st.expander(cat_name, expanded=True):
+            for label, query_text in queries:
+                if st.button(label, key=f"btn_preset_{label}", use_container_width=True):
+                    st.session_state.pending_query = query_text
+                    st.session_state["asset_panel_mode"] = None
 
     # 2. 에셋 다운로드 브라우저 사이드바 모듈
     render_asset_sidebar()
