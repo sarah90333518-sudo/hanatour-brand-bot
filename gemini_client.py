@@ -527,9 +527,14 @@ def check_fixed_answer(query: str) -> str | None:
     if q in color_triggers:
         return FIXED_ANSWERS["컬러"]
 
-    # 15. 브랜드 이미지
-    img_triggers = ["브랜드 이미지 다운로드", "브랜드 이미지 (446컷)", "브랜드성 이미지"]
-    if q in img_triggers:
+    # 15. 브랜드 이미지 (홍보물 이미지, 사용 가능한 이미지, 사진 소스 등 포함)
+    img_keywords = [
+        "브랜드 이미지", "브랜드성 이미지", "인물 이미지", "소품 이미지", "모델 이미지", 
+        "이미지 소스", "이미지 다운로드", "이미지 파일", "브랜드 사진", "모델 사진", 
+        "소품 사진", "이미지 프리뷰", "446컷", "홍보물 이미지", "사용할 수 있는 이미지",
+        "사용 가능한 이미지", "이미지 넣고", "이미지 필요", "이미지 446컷"
+    ]
+    if any(k in q for k in img_keywords) or ("이미지" in q and ("사용" in q or "홍보물" in q or "사진" in q or "다운" in q or "넣고" in q or "있어" in q or "있을까" in q or "있나요" in q)):
         return FIXED_ANSWERS["브랜드이미지"]
         
     return None
