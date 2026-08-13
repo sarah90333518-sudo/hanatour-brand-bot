@@ -77,13 +77,17 @@ st.markdown("""
         margin-bottom: 12px;
     }
 
-    /* 카드 스타일 */
+    /* 카드 스타일 (다크모드 & 라이트모드 호환) */
     .sidebar-card {
-        background-color: #F8F9FA;
+        background-color: rgba(94, 43, 184, 0.1);
+        border: 1px solid rgba(94, 43, 184, 0.3);
         border-left: 4px solid #5E2BB8;
         padding: 14px;
-        border-radius: 8px;
+        border-radius: 10px;
         margin-bottom: 16px;
+    }
+    .sidebar-card strong, .sidebar-card small {
+        color: inherit !important;
     }
     
     .weight-badge {
