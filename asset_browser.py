@@ -75,37 +75,37 @@ BRAND_GROUPS = {
     },
     "DMC": {
         "icon": "🌍",
-        "description": "DMC 전용 에셋 (명함·명찰·현수막·X배너·차량 등)",
+        "description": "DMC 전용 디자인 파일 (명함·명찰·현수막·X배너·차량 등)",
         "filter": lambda df: df[df["대분류코드"] == "02_DMC"],
     },
     "T데스크": {
         "icon": "🖥️",
-        "description": "T데스크 전용 에셋",
+        "description": "T데스크 전용 디자인 파일",
         "filter": lambda df: df[df["대분류코드"] == "04_T데스크"],
     },
     "T라운지": {
         "icon": "✈️",
-        "description": "T라운지 전용 에셋",
+        "description": "T라운지 전용 디자인 파일",
         "filter": lambda df: df[df["대분류코드"] == "03_T라운지"],
     },
     "해외지사": {
         "icon": "🗺️",
-        "description": "해외지사 전용 에셋",
+        "description": "해외지사 전용 디자인 파일",
         "filter": lambda df: df[df["대분류코드"] == "01_해외지사"],
     },
     "하나팩프리미엄": {
         "icon": "💎",
-        "description": "하나팩프리미엄 전용 에셋",
+        "description": "하나팩프리미엄 전용 디자인 파일",
         "filter": lambda df: df[df["대분류코드"] == "01_하나팩프리미엄"],
     },
     "제우스월드": {
         "icon": "⚡",
-        "description": "제우스월드 전용 에셋",
+        "description": "제우스월드 전용 디자인 파일",
         "filter": lambda df: df[df["대분류코드"] == "03_제우스월드"],
     },
     "밍글링투어": {
         "icon": "🎭",
-        "description": "밍글링투어 전용 에셋",
+        "description": "밍글링투어 전용 디자인 파일",
         "filter": lambda df: df[df["대분류코드"] == "02_밍글링투어"],
     },
     "글로벌네트워크": {
@@ -206,7 +206,7 @@ def render_asset_card(row):
 def render_asset_table(filtered_df):
     """에셋 목록을 테이블 형태로 표시"""
     if filtered_df.empty:
-        st.info("해당 그룹에 에셋이 없습니다.")
+        st.info("해당 그룹에 디자인 파일이 없습니다.")
         return
 
     # 항목별 그룹핑 (같은 항목의 여러 파일을 묶어서 표시)
@@ -287,12 +287,12 @@ def render_asset_browser():
     try:
         df = load_asset_data()
     except Exception as e:
-        st.error(f"에셋 CSV 로드 실패: {e}")
+        st.error(f"디자인 파일 CSV 로드 실패: {e}")
         return
 
     # 검색창
     search_query = st.text_input(
-        "🔍 에셋 검색",
+        "🔍 디자인 파일 검색",
         placeholder="로고, 명함, X배너, 간판 등 키워드 입력...",
         key="asset_search_main"
     )
@@ -310,11 +310,11 @@ def render_asset_browser():
     tab_brand, tab_type = st.tabs(["📂 브랜드별 보기 (10개 그룹)", "📋 유형별 보기 (14개 그룹)"])
 
     with tab_brand:
-        st.caption("브랜드·거점별로 에셋을 분류하여 표시합니다.")
+        st.caption("브랜드·거점별로 디자인 파일을 분류하여 표시합니다.")
         render_brand_view(df)
 
     with tab_type:
-        st.caption("에셋 유형별로 분류하여 표시합니다.")
+        st.caption("디자인 파일 유형별로 분류하여 표시합니다.")
         render_type_view(df)
 
 

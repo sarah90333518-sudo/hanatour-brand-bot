@@ -93,10 +93,10 @@ FIXED_ANSWERS = {
 ▶ 다운로드
 [공식인증예약센터 가이드라인](https://drive.google.com/drive/folders/1kne86RM4MgaVIaugm7sEBz2VzMjoTGKl?usp=sharing)
 
-─── 사인시스템 에셋 ───
+─── 사인시스템 디자인 파일 ───
 
-공식인증예약센터 등 CI 사용 승인 매장에 한해 적용되는 간판 및 사인시스템 제작용 가이드라인 및 디자인 에셋 다운로드 링크를 안내해 드립니다.
-용도에 맞춰 필요한 에셋을 확인해 보시기 바랍니다.
+공식인증예약센터 등 CI 사용 승인 매장에 한해 적용되는 간판 및 사인시스템 제작용 가이드라인 및 디자인 파일 다운로드 링크를 안내해 드립니다.
+용도에 맞춰 필요한 디자인 파일을 확인해 보시기 바랍니다.
 
 **1. 사인 요소**
 
@@ -120,7 +120,7 @@ FIXED_ANSWERS = {
 | SS12 가로입체BAR형 | [다운로드](https://drive.google.com/drive/folders/1KemxfSBxtFGvH_NlhKxXmtOP4Spm-THq?usp=sharing) |
 | SS13 세로플렉스형 | [다운로드](https://drive.google.com/drive/folders/198qYTWRj2sZnjyy5HLVPkF5-jyPEss_s?usp=sharing) |
 
-※ 사인시스템 에셋은 공식인증예약센터 등 CI 사용 승인 매장에 한해 적용됩니다.
+※ 사인시스템 디자인 파일은 공식인증예약센터 등 CI 사용 승인 매장에 한해 적용됩니다.
 
 ▶ 브랜드 검수·디자인 문의: 이승현G 선임(6725) / 백솜이 선임(7051)""",
 
