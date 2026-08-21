@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 from typing import List, Dict, Any
 
 # ─────────────────────────────────────
@@ -7,6 +8,19 @@ from typing import List, Dict, Any
 # ─────────────────────────────────────
 
 FIXED_ANSWERS = {
+    "폰트": """하나투어 폰트(지정서체) 규정 및 다운로드 링크를 안내해 드립니다.
+
+하나투어에서 사용하는 공식 폰트 및 지정 서체는 아래와 같습니다.
+
+• **공식 서체 ‘여행그자체’**: 브랜드마케팅팀 이승현G 선임(6725)에게 문의
+
+• **지정 서체 국문 ‘본고딕 (Noto Sans KR)’ / 영문 ‘Inter’**: 아래 드라이브 링크에서 다운로드
+
+▶ **지정서체 다운로드 링크**
+• [지정서체 (본고딕 / Inter) 다운로드](https://drive.google.com/drive/folders/1ijPYwDnEv3xB9feJThyVdngzjZoBeAwX?usp=drive_link)
+
+▶ **폰트 및 브랜드 문의**: 이승현G 선임 (6725) / 백솜이 선임 (7051)""",
+
     "로고": """하나투어 및 브랜드별 로고(CI/BI) 파일에 대해 안내해 드립니다.
 
 하나투어 로고는 H 모양의 심벌, '하나투어' 글자 로고, 심벌과 글자를 함께 사용한 가·세로형 로고, 슬로건 로고 등으로 구성되어 있으며, 일반적으로 심벌과 글자가 함께 있는 **조합형 로고**를 사용합니다. 웹 및 SNS용으로는 **RGB(또는 배경이 투명한 PNG)**, 일반 인쇄용으로는 **CMYK**, 대형 출력물 등 고품질이 필요한 경우에는 **AI(원본) 파일**을 용도에 맞게 선택하여 사용해 주시기 바랍니다. (※ 구버전 로고는 사용하지 않도록 유의해 주세요.)
@@ -773,9 +787,8 @@ def check_fixed_answer(query: str) -> str | None:
     if q in logo_triggers or q in ["ci", "bi", "ci/bi"]:
         return FIXED_ANSWERS["로고"]
 
-    # 8. 간판 / 사인시스템 (단독/대표 질의만 매칭)
-    sign_triggers = ["간판", "사인시스템", "대리점 간판", "대리점 간판 설치 ci 사용 규정", "대리점 간판 설치"]
-    if q in sign_triggers:
+    # 8. 간판 / 사인시스템 (간판 관련 질문 전체 매칭)
+    if "간판" in q or "사인시스템" in q:
         return FIXED_ANSWERS["간판"]
 
     # 9. 대리점 템플릿
@@ -841,6 +854,42 @@ def check_fixed_answer(query: str) -> str | None:
         return FIXED_ANSWERS["브랜드이미지"]
         
     return None
+
+def format_links_cleanly(raw_link: str) -> str:
+    if not raw_link or not str(raw_link).strip():
+        return ""
+    
+    raw_link = str(raw_link).strip()
+    lines = [line.strip() for line in raw_link.splitlines() if line.strip()]
+    
+    formatted_items = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if i + 1 < len(lines) and (lines[i+1].startswith("http://") or lines[i+1].startswith("https://")):
+            title = line.lstrip("•-▶ ").strip()
+            url = lines[i+1].strip()
+            formatted_items.append(f"• [{title}]({url})")
+            i += 2
+        elif line.startswith("http://") or line.startswith("https://"):
+            formatted_items.append(f"• [바로가기]({line})")
+            i += 1
+        else:
+            matches = re.findall(r'\[(.*?)\]\((https?://.*?)\)', line)
+            if matches:
+                for t, u in matches:
+                    formatted_items.append(f"• [{t}]({u})")
+            elif "http://" in line or "https://" in line:
+                url_match = re.search(r'(https?://\S+)', line)
+                if url_match:
+                    url = url_match.group(1)
+                    title = line.replace(url, "").strip("•-▶ []() ") or "바로가기"
+                    formatted_items.append(f"• [{title}]({url})")
+            i += 1
+
+    if formatted_items:
+        return "\n\n▶ **관련 링크 및 바로가기**\n" + "\n".join(formatted_items)
+    return f"\n\n▶ [관련 다운로드/바로가기]({raw_link})"
 
 # ─────────────────────────────────────
 # Gemini API Answer Generation
@@ -923,14 +972,14 @@ def generate_brand_response(query: str, search_results: List[Dict[str, Any]]) ->
     if search_results:
         if len(search_results) == 1:
             item = search_results[0]
-            link_str = f"\n\n▶ [관련 다운로드/바로가기]({item['link']})" if item.get('link') else ""
+            link_str = format_links_cleanly(item.get('link', ''))
             return f"{item['answer']}{link_str}\n\n▶ 브랜드 검수·디자인 문의: 이승현G 선임 (내선 6725) / 백솜이 선임 (내선 7051)".replace('\\n', '\n')
 
         res_parts = []
         for idx, item in enumerate(search_results, 1):
             q_clean = item['question']
             a_clean = item['answer']
-            link_str = f"\n  ▶ [관련 다운로드/바로가기]({item['link']})" if item.get('link') else ""
+            link_str = format_links_cleanly(item.get('link', ''))
             res_parts.append(f"**{idx}. {q_clean}**\n{a_clean}{link_str}")
         res_parts.append("\n▶ 브랜드 검수·디자인 문의: 이승현G 선임 (내선 6725) / 백솜이 선임 (내선 7051)")
         return "\n\n".join(res_parts).replace('\\n', '\n')
